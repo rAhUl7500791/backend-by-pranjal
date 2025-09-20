@@ -1,5 +1,7 @@
 package com.estate.propertyfinder.auth.models;
 
+import com.estate.propertyfinder.api.models.PropertyDetailsMaster;
+import com.estate.propertyfinder.api.models.QueryMaster;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -16,7 +18,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;
@@ -34,6 +36,11 @@ public class User implements UserDetails {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PropertyDetailsMaster> properties;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QueryMaster> queries;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,11 +76,11 @@ public class User implements UserDetails {
         return true;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -111,5 +118,21 @@ public class User implements UserDetails {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<PropertyDetailsMaster> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(List<PropertyDetailsMaster> properties) {
+        this.properties = properties;
+    }
+
+    public List<QueryMaster> getQueries() {
+        return queries;
+    }
+
+    public void setQueries(List<QueryMaster> queries) {
+        this.queries = queries;
     }
 }
