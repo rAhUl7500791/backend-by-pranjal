@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz ->authz
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/open/**").permitAll()
                 .anyRequest()
                 .authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

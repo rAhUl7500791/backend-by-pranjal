@@ -2,9 +2,12 @@ package com.estate.propertyfinder.api.service;
 
 import com.estate.propertyfinder.api.dto.ImageDto;
 import com.estate.propertyfinder.api.dto.PropertyAddDto;
+import com.estate.propertyfinder.api.dto.QueryRequestDto;
 import com.estate.propertyfinder.api.models.ImageMaster;
 import com.estate.propertyfinder.api.models.PropertyDetailsMaster;
+import com.estate.propertyfinder.api.models.QueryMaster;
 import com.estate.propertyfinder.api.repository.PropertyDetailsMasterRepository;
+import com.estate.propertyfinder.api.repository.QueryMasterRepository;
 import com.estate.propertyfinder.auth.models.User;
 import com.estate.propertyfinder.auth.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -18,10 +21,12 @@ public class PropertyService {
 
     private PropertyDetailsMasterRepository propertyDetailsMasterRepository;
     private UserRepository userRepository;
+    private QueryMasterRepository queryMasterRepository;
 
-    public PropertyService(PropertyDetailsMasterRepository propertyDetailsMasterRepository,UserRepository userRepository){
+    public PropertyService(PropertyDetailsMasterRepository propertyDetailsMasterRepository,UserRepository userRepository,QueryMasterRepository queryMasterRepository){
         this.propertyDetailsMasterRepository = propertyDetailsMasterRepository;
         this.userRepository = userRepository;
+        this.queryMasterRepository = queryMasterRepository;
     }
 
 
@@ -79,4 +84,26 @@ public class PropertyService {
                 .toList();
     }
 
+    public String raiseQuery(QueryRequestDto queryRequestDto){
+        User user = getUser(queryRequestDto.getAgentUserId());
+        PropertyDetailsMaster propertyDetailsMaster = mapDtoToEntity(queryRequestDto.getPropertyDetailId());
+        queryMasterRepository.save(mapDtoToEntity(queryRequestDto,propertyDetailsMaster,user));
+        return "Success";
+    }
+    private QueryMaster mapDtoToEntity(QueryRequestDto dto, PropertyDetailsMaster propertyDetailsMaster, User user) {
+        QueryMaster queryMaster = new QueryMaster();
+        queryMaster.setProperty(propertyDetailsMaster);
+        queryMaster.setUser(user);
+        queryMaster.setQueryText(dto.getMessage());
+        queryMaster.setStatus("OPEN");
+        queryMaster.setClientPhoneNumber(dto.getClientPhoneNumber());
+        queryMaster.setClientEmail(dto.getClientEmail());
+        queryMaster.setClientFullName(dto.getFullName());
+        return queryMaster;
+    }
+    private PropertyDetailsMaster mapDtoToEntity(Long propertyDetailId){
+        PropertyDetailsMaster propertyDetailsMaster = new PropertyDetailsMaster();
+        propertyDetailsMaster.setId(propertyDetailId);
+        return  propertyDetailsMaster;
+    }
 }
