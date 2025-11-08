@@ -1,8 +1,6 @@
 package com.estate.propertyfinder.api.service;
 
-import com.estate.propertyfinder.api.dto.ImageDto;
-import com.estate.propertyfinder.api.dto.PropertyAddDto;
-import com.estate.propertyfinder.api.dto.QueryRequestDto;
+import com.estate.propertyfinder.api.dto.*;
 import com.estate.propertyfinder.api.models.ImageMaster;
 import com.estate.propertyfinder.api.models.PropertyDetailsMaster;
 import com.estate.propertyfinder.api.models.QueryMaster;
@@ -10,11 +8,23 @@ import com.estate.propertyfinder.api.repository.PropertyDetailsMasterRepository;
 import com.estate.propertyfinder.api.repository.QueryMasterRepository;
 import com.estate.propertyfinder.auth.models.User;
 import com.estate.propertyfinder.auth.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PropertyService {
@@ -22,11 +32,13 @@ public class PropertyService {
     private PropertyDetailsMasterRepository propertyDetailsMasterRepository;
     private UserRepository userRepository;
     private QueryMasterRepository queryMasterRepository;
+    private RestTemplate restTemplate;
 
-    public PropertyService(PropertyDetailsMasterRepository propertyDetailsMasterRepository,UserRepository userRepository,QueryMasterRepository queryMasterRepository){
+    public PropertyService(PropertyDetailsMasterRepository propertyDetailsMasterRepository,UserRepository userRepository,QueryMasterRepository queryMasterRepository,RestTemplate restTemplate){
         this.propertyDetailsMasterRepository = propertyDetailsMasterRepository;
         this.userRepository = userRepository;
         this.queryMasterRepository = queryMasterRepository;
+        this.restTemplate = restTemplate;
     }
 
 
@@ -77,7 +89,7 @@ public class PropertyService {
         return imagesDto.stream()
                 .map(imgDto -> {
                     ImageMaster img = new ImageMaster();
-                    img.setImageUrl(imgDto.getImageUrl());
+                    img.setImageUrl(saveImageToCloud(imgDto.getImgbase64Format()));
                     img.setProperty(property);
                     return img;
                 })
@@ -105,5 +117,75 @@ public class PropertyService {
         PropertyDetailsMaster propertyDetailsMaster = new PropertyDetailsMaster();
         propertyDetailsMaster.setId(propertyDetailId);
         return  propertyDetailsMaster;
+    }
+    private String saveImageToCloud(String base64Fromat){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("image", base64Fromat);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                new HttpEntity<>(body, headers);
+        ResponseEntity<UploadResponse> responseEntity = restTemplate.postForEntity(
+                "https://api.imgbb.com/1/upload?expiration=0&key=7e911fda5c06a9699c0df57d6cf27e16",
+                requestEntity,
+                UploadResponse.class
+        );
+        return responseEntity.getBody().getData().getUrl();
+    }
+    public PageResponse<GetAllProperties> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PropertyDetailsMaster> propertyPage = propertyDetailsMasterRepository.findAll(pageable);
+
+        // Map entities to DTOs
+        List<GetAllProperties> dtoList = propertyPage.getContent().stream()
+                .map(property -> {
+                    GetAllProperties dto = new GetAllProperties();
+                    dto.setId(property.getId());
+                    dto.setPropertyName(property.getPropertyName());
+                    dto.setPropertyType(property.getPropertyType());
+                    dto.setPrice(property.getPrice());
+                    dto.setBedrooms(property.getBedrooms());
+                    dto.setBathrooms(property.getBathrooms());
+                    dto.setDimension(property.getDimension());
+                    dto.setStatus(property.getStatus());
+                    dto.setDiscription(property.getDiscription());
+                    dto.setLocation(property.getLocation());
+                    dto.setCreatedAt(property.getCreatedAt());
+                    dto.setUpdatedAt(property.getUpdatedAt());
+
+                    if (property.getUser() != null) {
+                        UserDto userDto = new UserDto();
+                        userDto.setId(property.getUser().getId());
+                        userDto.setFullName(property.getUser().getFullName());
+                        userDto.setEmail(property.getUser().getEmail());
+                        dto.setUser(userDto);
+                    }
+
+                    if (property.getImages() != null) {
+                        dto.setImages(
+                                property.getImages().stream()
+                                        .map(image -> {
+                                            ImageDto imageDto = new ImageDto();
+                                            imageDto.setId(image.getId());
+                                            imageDto.setImageUrl(image.getImageUrl());
+                                            return imageDto;
+                                        })
+                                        .toList()
+                        );
+                    }
+                    return dto;
+                })
+                .toList();
+
+        // Prepare PageResponse
+        PageResponse<GetAllProperties> response = new PageResponse<>();
+        response.setContent(dtoList);
+        response.setPageNumber(propertyPage.getNumber());
+        response.setPageSize(propertyPage.getSize());
+        response.setTotalElements(propertyPage.getTotalElements());
+        response.setTotalPages(propertyPage.getTotalPages());
+        response.setLast(propertyPage.isLast());
+
+        return response;
     }
 }
