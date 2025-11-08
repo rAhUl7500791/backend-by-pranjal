@@ -19,7 +19,7 @@ public class Controller {
         this.propertyService = propertyService;
     }
     @PostMapping("/add")
-    public ResponseEntity<String> register(@RequestBody PropertyAddDto propertyAddDto) {
+    public ResponseEntity<PropertyAddDto> register(@RequestBody PropertyAddDto propertyAddDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.addProperty(propertyAddDto));
     }
 

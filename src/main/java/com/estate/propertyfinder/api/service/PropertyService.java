@@ -43,12 +43,12 @@ public class PropertyService {
 
 
 
-    public String addProperty(PropertyAddDto dto) {
+    public PropertyAddDto addProperty(PropertyAddDto dto) {
         checkAuthenticity(dto.getUserId());
         User user = getUser(dto.getUserId());
         PropertyDetailsMaster property = mapDtoToEntity(dto, user);
         PropertyDetailsMaster saved = propertyDetailsMasterRepository.save(property);
-        return "Success";
+        return dto;
     }
 
     private void checkAuthenticity(Long userId){
