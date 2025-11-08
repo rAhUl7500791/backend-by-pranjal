@@ -1,6 +1,7 @@
 package com.estate.propertyfinder.api.models;
 
 import com.estate.propertyfinder.auth.models.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

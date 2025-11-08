@@ -25,6 +25,15 @@ public class GetAllProperties {
     private Date updatedAt;
     private UserDto user;
     private List<ImageDto> images;
+    private List<QueryRequestDto> queries;
+
+    public List<QueryRequestDto> getQueries() {
+        return queries;
+    }
+
+    public void setQueries(List<QueryRequestDto> queries) {
+        this.queries = queries;
+    }
 
     public Long getId() {
         return id;

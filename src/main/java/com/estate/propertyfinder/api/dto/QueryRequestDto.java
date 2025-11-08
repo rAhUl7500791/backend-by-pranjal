@@ -1,12 +1,21 @@
 package com.estate.propertyfinder.api.dto;
 
 public class QueryRequestDto {
+    private Long id;
     private String fullName;
     private String clientPhoneNumber;
     private String clientEmail;
-    private String message;
+    private String queryText;
     private Long agentUserId;
     private Long propertyDetailId;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Long getPropertyDetailId() {
         return propertyDetailId;
@@ -40,12 +49,12 @@ public class QueryRequestDto {
         this.clientEmail = clientEmail;
     }
 
-    public String getMessage() {
-        return message;
+    public String getQueryText() {
+        return queryText;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setQueryText(String queryText) {
+        this.queryText = queryText;
     }
 
     public Long getAgentUserId() {

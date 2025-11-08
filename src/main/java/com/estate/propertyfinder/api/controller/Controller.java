@@ -1,5 +1,6 @@
 package com.estate.propertyfinder.api.controller;
 
+import com.estate.propertyfinder.api.dto.GetAllProperties;
 import com.estate.propertyfinder.api.dto.PropertyAddDto;
 import com.estate.propertyfinder.api.models.PropertyDetailsMaster;
 import com.estate.propertyfinder.api.service.PropertyService;
@@ -19,7 +20,7 @@ public class Controller {
         this.propertyService = propertyService;
     }
     @PostMapping("/add")
-    public ResponseEntity<PropertyAddDto> register(@RequestBody PropertyAddDto propertyAddDto) {
+    public ResponseEntity<GetAllProperties> register(@RequestBody PropertyAddDto propertyAddDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.addProperty(propertyAddDto));
     }
 

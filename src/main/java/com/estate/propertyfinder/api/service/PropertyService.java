@@ -22,9 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PropertyService {
@@ -43,13 +41,15 @@ public class PropertyService {
 
 
 
-    public PropertyAddDto addProperty(PropertyAddDto dto) {
+    public GetAllProperties addProperty(PropertyAddDto dto) {
         checkAuthenticity(dto.getUserId());
         User user = getUser(dto.getUserId());
         PropertyDetailsMaster property = mapDtoToEntity(dto, user);
         PropertyDetailsMaster saved = propertyDetailsMasterRepository.save(property);
-        return dto;
+        GetAllProperties res = maptoRes(saved);
+        return res;
     }
+
 
     private void checkAuthenticity(Long userId){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -106,7 +106,7 @@ public class PropertyService {
         QueryMaster queryMaster = new QueryMaster();
         queryMaster.setProperty(propertyDetailsMaster);
         queryMaster.setUser(user);
-        queryMaster.setQueryText(dto.getMessage());
+        queryMaster.setQueryText(dto.getQueryText());
         queryMaster.setStatus("OPEN");
         queryMaster.setClientPhoneNumber(dto.getClientPhoneNumber());
         queryMaster.setClientEmail(dto.getClientEmail());
@@ -139,40 +139,7 @@ public class PropertyService {
         // Map entities to DTOs
         List<GetAllProperties> dtoList = propertyPage.getContent().stream()
                 .map(property -> {
-                    GetAllProperties dto = new GetAllProperties();
-                    dto.setId(property.getId());
-                    dto.setPropertyName(property.getPropertyName());
-                    dto.setPropertyType(property.getPropertyType());
-                    dto.setPrice(property.getPrice());
-                    dto.setBedrooms(property.getBedrooms());
-                    dto.setBathrooms(property.getBathrooms());
-                    dto.setDimension(property.getDimension());
-                    dto.setStatus(property.getStatus());
-                    dto.setDiscription(property.getDiscription());
-                    dto.setLocation(property.getLocation());
-                    dto.setCreatedAt(property.getCreatedAt());
-                    dto.setUpdatedAt(property.getUpdatedAt());
-
-                    if (property.getUser() != null) {
-                        UserDto userDto = new UserDto();
-                        userDto.setId(property.getUser().getId());
-                        userDto.setFullName(property.getUser().getFullName());
-                        userDto.setEmail(property.getUser().getEmail());
-                        dto.setUser(userDto);
-                    }
-
-                    if (property.getImages() != null) {
-                        dto.setImages(
-                                property.getImages().stream()
-                                        .map(image -> {
-                                            ImageDto imageDto = new ImageDto();
-                                            imageDto.setId(image.getId());
-                                            imageDto.setImageUrl(image.getImageUrl());
-                                            return imageDto;
-                                        })
-                                        .toList()
-                        );
-                    }
+                    GetAllProperties dto=  maptoRes(property);
                     return dto;
                 })
                 .toList();
@@ -187,5 +154,58 @@ public class PropertyService {
         response.setLast(propertyPage.isLast());
 
         return response;
+    }
+
+    private GetAllProperties maptoRes(PropertyDetailsMaster property){
+        GetAllProperties dto = new GetAllProperties();
+        dto.setId(property.getId());
+        dto.setPropertyName(property.getPropertyName());
+        dto.setPropertyType(property.getPropertyType());
+        dto.setPrice(property.getPrice());
+        dto.setBedrooms(property.getBedrooms());
+        dto.setBathrooms(property.getBathrooms());
+        dto.setDimension(property.getDimension());
+        dto.setStatus(property.getStatus());
+        dto.setDiscription(property.getDiscription());
+        dto.setLocation(property.getLocation());
+        dto.setCreatedAt(property.getCreatedAt());
+        dto.setUpdatedAt(property.getUpdatedAt());
+
+        if (property.getUser() != null) {
+            UserDto userDto = new UserDto();
+            userDto.setId(property.getUser().getId());
+            userDto.setFullName(property.getUser().getFullName());
+            userDto.setEmail(property.getUser().getEmail());
+            dto.setUser(userDto);
+        }
+
+        if (property.getImages() != null) {
+            dto.setImages(
+                    property.getImages().stream()
+                            .map(image -> {
+                                ImageDto imageDto = new ImageDto();
+                                imageDto.setId(image.getId());
+                                imageDto.setImageUrl(image.getImageUrl());
+                                return imageDto;
+                            })
+                            .toList()
+            );
+        }
+        if (property.getQueries() != null) {
+            dto.setQueries(
+                    property.getQueries().stream()
+                            .map(query -> {
+                                QueryRequestDto queryRequestDto = new QueryRequestDto();
+                                queryRequestDto.setId(query.getId());
+                                queryRequestDto.setClientEmail(query.getClientEmail());
+                                queryRequestDto.setQueryText(query.getQueryText());
+                                queryRequestDto.setClientPhoneNumber(query.getClientPhoneNumber());
+                                queryRequestDto.setFullName(query.getClientFullName());
+                                return queryRequestDto;
+                            })
+                            .toList()
+            );
+        }
+        return dto;
     }
 }
