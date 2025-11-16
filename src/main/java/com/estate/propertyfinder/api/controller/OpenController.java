@@ -1,10 +1,8 @@
 package com.estate.propertyfinder.api.controller;
 
-import com.estate.propertyfinder.api.dto.GetAllProperties;
-import com.estate.propertyfinder.api.dto.PageResponse;
-import com.estate.propertyfinder.api.dto.PropertyAddDto;
-import com.estate.propertyfinder.api.dto.QueryRequestDto;
+import com.estate.propertyfinder.api.dto.*;
 import com.estate.propertyfinder.api.models.PropertyDetailsMaster;
+import com.estate.propertyfinder.api.models.QueryMaster;
 import com.estate.propertyfinder.api.service.PropertyService;
 import com.estate.propertyfinder.auth.dto.RegisterUserDto;
 import com.estate.propertyfinder.auth.models.User;
@@ -26,7 +24,7 @@ public class OpenController {
     }
 
     @PostMapping("/raise-query")
-    public ResponseEntity<String> register(@RequestBody QueryRequestDto queryRequestDto) {
+    public ResponseEntity<QueryMasterResponse> register(@RequestBody QueryRequestDto queryRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.raiseQuery(queryRequestDto));
     }
     @GetMapping("/property/getAll")

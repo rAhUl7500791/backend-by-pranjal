@@ -3,11 +3,20 @@ package com.estate.propertyfinder.api.dto;
 public class QueryRequestDto {
     private Long id;
     private String fullName;
+    private String status;
     private String clientPhoneNumber;
     private String clientEmail;
     private String queryText;
     private Long agentUserId;
     private Long propertyDetailId;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;

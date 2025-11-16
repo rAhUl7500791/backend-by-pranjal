@@ -22,7 +22,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Service
 public class PropertyService {
@@ -47,6 +49,16 @@ public class PropertyService {
         PropertyDetailsMaster property = mapDtoToEntity(dto, user);
         PropertyDetailsMaster saved = propertyDetailsMasterRepository.save(property);
         GetAllProperties res = maptoRes(saved);
+        return res;
+    }
+
+    public List<GetAllProperties> findByUserId(Long userId){
+        List<PropertyDetailsMaster> saved = propertyDetailsMasterRepository.findByUserId(userId);
+        List<GetAllProperties> res = new ArrayList<>();
+        for(int i=0;i<saved.size();i++){
+            GetAllProperties  gp= maptoRes(saved.get(i));
+            res.add(gp);
+        }
         return res;
     }
 
@@ -96,11 +108,27 @@ public class PropertyService {
                 .toList();
     }
 
-    public String raiseQuery(QueryRequestDto queryRequestDto){
+    public QueryMasterResponse raiseQuery(QueryRequestDto queryRequestDto){
         User user = getUser(queryRequestDto.getAgentUserId());
         PropertyDetailsMaster propertyDetailsMaster = mapDtoToEntity(queryRequestDto.getPropertyDetailId());
-        queryMasterRepository.save(mapDtoToEntity(queryRequestDto,propertyDetailsMaster,user));
-        return "Success";
+        return mapperResponse(queryMasterRepository.save(mapDtoToEntity(queryRequestDto,propertyDetailsMaster,user)));
+    }
+
+    private QueryMasterResponse mapperResponse(QueryMaster qe){
+        QueryMasterResponse qr =new QueryMasterResponse();
+        qr.setId(qe.getId());
+        qr.setQueryText(qe.getQueryText());
+        qr.setStatus(qe.getStatus());
+        qr.setClientPhoneNumber(qe.getClientPhoneNumber());
+        qr.setClientEmail(qe.getClientEmail());
+        qr.setClientFullName(qe.getClientFullName());
+        qr.setCreatedAt(qe.getCreatedAt());
+        qr.setUpdatedAt(qe.getUpdatedAt());
+        UserDto user = new UserDto();
+        user.setId(qe.getUser().getId());
+        qr.setUser(user);
+//        qr.setProperty(qe.getProperty());
+        return  qr;
     }
     private QueryMaster mapDtoToEntity(QueryRequestDto dto, PropertyDetailsMaster propertyDetailsMaster, User user) {
         QueryMaster queryMaster = new QueryMaster();
@@ -197,6 +225,7 @@ public class PropertyService {
                             .map(query -> {
                                 QueryRequestDto queryRequestDto = new QueryRequestDto();
                                 queryRequestDto.setId(query.getId());
+                                queryRequestDto.setStatus(query.getStatus());
                                 queryRequestDto.setClientEmail(query.getClientEmail());
                                 queryRequestDto.setQueryText(query.getQueryText());
                                 queryRequestDto.setClientPhoneNumber(query.getClientPhoneNumber());
