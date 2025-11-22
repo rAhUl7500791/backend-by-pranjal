@@ -22,6 +22,7 @@ public class PropertyDetailsMaster {
     private String bathrooms;
     private String dimension;
     private String status;
+    @Column(length = 1000)
     private String discription;
     private String location;
     @CreationTimestamp
